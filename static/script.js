@@ -20,31 +20,31 @@ const p_min = Number(inputP1.getAttribute("min"));
 const p_max = Number(inputP1.getAttribute("max"));
 
 const resetInfo = () => {
-    errorText.textContent = "";
-    plotCountsSpread.setAttribute("src", "");
-    plotScoreSpread.setAttribute("src", "");
+	errorText.textContent = "";
+	plotCountsSpread.setAttribute("src", "");
+	plotScoreSpread.setAttribute("src", "");
 }
 
 const showLoader = loader => loader.classList.add("show");
 const hideLoader = loader => loader.classList.remove("show");
 
 const validateParams = params => {
-    if (params.b1 < b_min || params.b1 > b_max) return `значение b1 вне диапазона (${b_min}, ${b_max})`;
-    if (params.b2 < b_min || params.b2 > b_max) return `значение b2 вне диапазона (${b_min}, ${b_max})`;
-    if (params.p1 < p_min || params.p1 > p_max) return `значение p1 вне диапазона (${p_min}, ${p_max})`;
-    if (params.p2 < p_min || params.p2 > p_max) return `значение p2 вне диапазона (${p_min}, ${p_max})`;
+	if (params.b1 < b_min || params.b1 > b_max) return `значение b1 вне диапазона (${b_min}, ${b_max})`;
+	if (params.b2 < b_min || params.b2 > b_max) return `значение b2 вне диапазона (${b_min}, ${b_max})`;
+	if (params.p1 < p_min || params.p1 > p_max) return `значение p1 вне диапазона (${p_min}, ${p_max})`;
+	if (params.p2 < p_min || params.p2 > p_max) return `значение p2 вне диапазона (${p_min}, ${p_max})`;
 
-    if (params.b1 > params.b2) return "значение b1 не должно быть больше значения b2";
-    if (params.p1 > params.p2) return "значение p1 не должно быть больше значения p2";
+	if (params.b1 > params.b2) return "значение b1 не должно быть больше значения b2";
+	if (params.p1 > params.p2) return "значение p1 не должно быть больше значения p2";
 
-    return "success";
+	return "success";
 }
 
 const getParams = () => ({
-    b1: Number(inputB1.value),
-    b2: Number(inputB2.value),
-    p1: Number(inputP1.value),
-    p2: Number(inputP2.value),
+	b1: Number(inputB1.value),
+	b2: Number(inputB2.value),
+	p1: Number(inputP1.value),
+	p2: Number(inputP2.value),
 });
 
 inputB1.addEventListener("input", resetInfo);
@@ -53,56 +53,56 @@ inputP1.addEventListener("input", resetInfo);
 inputP2.addEventListener("input", resetInfo);
 
 buttonCalcCount.addEventListener("click", async function () {
-    let params = getParams();
+	let params = getParams();
 
-    let valRes = validateParams(params);
-    if (valRes !== "success") {
-        errorText.textContent = valRes;
-        return;
-    } else resetInfo();
+	let valRes = validateParams(params);
+	if (valRes !== "success") {
+		errorText.textContent = valRes;
+		return;
+	} else resetInfo();
 
-    showLoader(loaderCount);
+	showLoader(loaderCount);
 
-    let response = await fetch("/table_counts", {
-        method: "POST",
-        headers: { 'Content-Type': 'application/json;charset=utf-8' },
-        body: JSON.stringify(params), 
-    });
+	let response = await fetch("/table_counts", {
+		method: "POST",
+		headers: { 'Content-Type': 'application/json;charset=utf-8' },
+		body: JSON.stringify(params), 
+	});
 
-    if (response.status !== 200) {
-        errorText.textContent = "Server error";
-        hideLoader(loaderCount);
-        return;
-    }
+	if (response.status !== 200) {
+		errorText.textContent = "Server error";
+		hideLoader(loaderCount);
+		return;
+	}
 
-    let plots_paths = await response.json();
+	let plots_paths = await response.json();
 
-    plotCountsSpread.setAttribute("src", plots_paths.counts_spread + "?" + new Date().getTime());
-    plotScoreSpread.setAttribute("src", plots_paths.average_score_spread + "?" + new Date().getTime());
-    hideLoader(loaderCount);
+	plotCountsSpread.setAttribute("src", plots_paths.counts_spread + "?" + new Date().getTime());
+	plotScoreSpread.setAttribute("src", plots_paths.average_score_spread + "?" + new Date().getTime());
+	hideLoader(loaderCount);
 });
 
 buttonCalcPeople.addEventListener("click", async function () {
-    let params = getParams();
+	let params = getParams();
 
-    let valRes = validateParams(params);
-    if (valRes !== "success") {
-        errorText.textContent = valRes;
-        return;
-    } else resetInfo();
+	let valRes = validateParams(params);
+	if (valRes !== "success") {
+		errorText.textContent = valRes;
+		return;
+	} else resetInfo();
 
-    showLoader(loaderPeople);
+	showLoader(loaderPeople);
 
-    let response = await fetch("/people_required_for_every_table", {
-        method: "POST",
-        headers: { 'Content-Type': 'application/json;charset=utf-8' },
-        body: JSON.stringify(params), 
-    });
+	let response = await fetch("/people_required_for_every_table", {
+		method: "POST",
+		headers: { 'Content-Type': 'application/json;charset=utf-8' },
+		body: JSON.stringify(params), 
+	});
 
-    hideLoader(loaderPeople);
+	hideLoader(loaderPeople);
 
-    if (response.status !== 200) {
-        errorText.textContent = "Server error";
-        return;
-    }
+	if (response.status !== 200) {
+		errorText.textContent = "Server error";
+		return;
+	}
 });
