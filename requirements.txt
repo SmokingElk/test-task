@@ -1,5 +1,5 @@
-openpyxl
-pandas
-flask
-seaborn
-gevent
+openpyxl==3.1.2
+pandas==2.2.1
+Flask==3.0.2
+seaborn==0.13.2
+gevent==24.2.1
