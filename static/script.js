@@ -6,6 +6,9 @@ const inputP2 = document.getElementById("input_p2");
 const buttonCalcCount = document.getElementById("calc_count");
 const buttonCalcPeople = document.getElementById("calc_people");
 
+const loaderCount = document.getElementById("loader_count");
+const loaderPeople = document.getElementById("loader_people");
+
 const plotCountsSpread = document.getElementById("plot_counts_spread");
 const plotScoreSpread = document.getElementById("plot_score_spread");
 
@@ -17,6 +20,8 @@ const p_min = Number(inputP1.getAttribute("min"));
 const p_max = Number(inputP1.getAttribute("max"));
 
 const resetError = () => errorText.textContent = "";
+const showLoader = loader => loader.classList.add("show");
+const hideLoader = loader => loader.classList.remove("show");
 
 const validateParams = params => {
     if (params.b1 < b_min || params.b1 > b_max) return `значение b1 вне диапазона (${b_min}, ${b_max})`;
@@ -51,6 +56,8 @@ buttonCalcCount.addEventListener("click", async function () {
         return;
     } else resetError();
 
+    showLoader(loaderCount);
+
     let response = await fetch("/table_counts", {
         method: "POST",
         headers: { 'Content-Type': 'application/json;charset=utf-8' },
@@ -59,6 +66,7 @@ buttonCalcCount.addEventListener("click", async function () {
 
     if (response.status !== 200) {
         errorText.textContent = "Server error";
+        hideLoader(loaderCount);
         return;
     }
 
@@ -66,6 +74,7 @@ buttonCalcCount.addEventListener("click", async function () {
 
     plotCountsSpread.setAttribute("src", plots_paths.counts_spread + "?" + new Date().getTime());
     plotScoreSpread.setAttribute("src", plots_paths.average_score_spread + "?" + new Date().getTime());
+    hideLoader(loaderCount);
 });
 
 buttonCalcPeople.addEventListener("click", async function () {
@@ -77,11 +86,15 @@ buttonCalcPeople.addEventListener("click", async function () {
         return;
     } else resetError();
 
+    showLoader(loaderPeople);
+
     let response = await fetch("/people_required_for_every_table", {
         method: "POST",
         headers: { 'Content-Type': 'application/json;charset=utf-8' },
         body: JSON.stringify(params), 
     });
+
+    hideLoader(loaderPeople);
 
     if (response.status !== 200) {
         errorText.textContent = "Server error";

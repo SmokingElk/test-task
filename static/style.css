@@ -73,6 +73,20 @@ body {
     color: #F0EFF0;
     border: none;
     cursor: pointer;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loader_img {
+    width: 20px;
+    height: 20px;
+    display: none;
+}
+
+.loader_img.show {
+    display: inline;
 }
 
 .plots_row {
