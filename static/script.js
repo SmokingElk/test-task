@@ -19,7 +19,12 @@ const b_max = Number(inputB1.getAttribute("max"));
 const p_min = Number(inputP1.getAttribute("min"));
 const p_max = Number(inputP1.getAttribute("max"));
 
-const resetError = () => errorText.textContent = "";
+const resetInfo = () => {
+    errorText.textContent = "";
+    plotCountsSpread.setAttribute("src", "");
+    plotScoreSpread.setAttribute("src", "");
+}
+
 const showLoader = loader => loader.classList.add("show");
 const hideLoader = loader => loader.classList.remove("show");
 
@@ -42,10 +47,10 @@ const getParams = () => ({
     p2: Number(inputP2.value),
 });
 
-inputB1.addEventListener("change", resetError);
-inputB2.addEventListener("change", resetError);
-inputP1.addEventListener("change", resetError);
-inputP2.addEventListener("change", resetError);
+inputB1.addEventListener("input", resetInfo);
+inputB2.addEventListener("input", resetInfo);
+inputP1.addEventListener("input", resetInfo);
+inputP2.addEventListener("input", resetInfo);
 
 buttonCalcCount.addEventListener("click", async function () {
     let params = getParams();
@@ -54,7 +59,7 @@ buttonCalcCount.addEventListener("click", async function () {
     if (valRes !== "success") {
         errorText.textContent = valRes;
         return;
-    } else resetError();
+    } else resetInfo();
 
     showLoader(loaderCount);
 
@@ -84,7 +89,7 @@ buttonCalcPeople.addEventListener("click", async function () {
     if (valRes !== "success") {
         errorText.textContent = valRes;
         return;
-    } else resetError();
+    } else resetInfo();
 
     showLoader(loaderPeople);
 
