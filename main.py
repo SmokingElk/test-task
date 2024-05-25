@@ -1,5 +1,5 @@
 from flask import Flask, request, render_template, abort
-from process_data import load_data, create_stat_table, form_tables_with_required_people, calc_ranges, reshape_counts_to_show, DIR_CODES_COL, COUNTS_REQUIRED_COL
+from process_data import load_data, create_stat_table, form_tables_with_required_people, calc_ranges_common, reshape_counts_to_show, DIR_CODES_COL, COUNTS_REQUIRED_COL
 from plots import create_counts_plot, create_scores_plot
 from json import dumps
 from gevent import sleep
@@ -15,7 +15,7 @@ app = Flask(__name__, static_folder="static", template_folder="static")
 ui_server = WSGIServer((HOST, PORT), app, log=open(os.devnull, "w"))
 
 source_data = load_data(DATA_PATH)
-ranges = calc_ranges(source_data)
+ranges = calc_ranges_common(source_data)
 
 
 @app.route('/', methods=['GET'])
@@ -33,7 +33,15 @@ def root():
 def table_counts():
     try:
         params = request.get_json()
-        stat_table = create_stat_table(source_data, params, ranges)
+
+        # при необходимости можно принимать разные параметры фильтрации для разных направлений
+        params_dict = {}
+        ranges_dict = {}
+        for i in source_data.keys():
+            params_dict[i] = params
+            ranges_dict[i] = ranges
+
+        stat_table = create_stat_table(source_data, params_dict, ranges_dict)
 
         stat_table[[DIR_CODES_COL, COUNTS_REQUIRED_COL]].to_excel(f"{OUT_PATH}/common.xlsx")
         
@@ -56,7 +64,15 @@ def table_counts():
 def tables_with_people():
     try:
         params = request.get_json()
-        form_tables_with_required_people(source_data, params, ranges, OUT_PATH)
+
+        # при необходимости можно принимать разные параметры фильтрации для разных направлений
+        params_dict = {}
+        ranges_dict = {}
+        for i in source_data.keys():
+            params_dict[i] = params
+            ranges_dict[i] = ranges
+
+        form_tables_with_required_people(source_data, params_dict, ranges_dict, OUT_PATH)
 
         return "ok"   
 

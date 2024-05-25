@@ -29,17 +29,23 @@ def load_data(load_dir):
     return res
 
 
-def calc_ranges(tables_all):
-    b_min = min([i[SCORE_SUM_COL].min() for i in tables_all.values()])
-    b_max = max([i[SCORE_SUM_COL].max() for i in tables_all.values()])
-    p_min = min([i[PRIPROTY_COL].min() for i in tables_all.values()])
-    p_max = max([i[PRIPROTY_COL].max() for i in tables_all.values()])
+def calc_ranges(table):
+    return {
+        "b_min": table[SCORE_SUM_COL].min(), 
+        "b_max": table[SCORE_SUM_COL].max(), 
+        "p_min": table[PRIPROTY_COL].min(), 
+        "p_max": table[PRIPROTY_COL].max()
+    }
+
+
+def calc_ranges_common(tables_all):
+    ranges = [calc_ranges(i) for i in tables_all.values()]
 
     return {
-        "b_min": b_min, 
-        "b_max": b_max, 
-        "p_min": p_min, 
-        "p_max": p_max
+        "b_min": min([i["b_min"] for i in ranges]), 
+        "b_max": max([i["b_max"] for i in ranges]), 
+        "p_min": min([i["p_min"] for i in ranges]), 
+        "p_max": max([i["p_max"] for i in ranges])
     }
 
 
@@ -76,9 +82,12 @@ def filter_table(table, filter_params):
 
 
 def create_stat_table(tables_all, filter_params, ranges):
-    validate_filter_params(filter_params, ranges)
+    processed_tables = []
 
-    processed_tables = [filter_table(tables_all[i], filter_params) for i in tables_all.keys()]
+    for i in tables_all.keys():
+        validate_filter_params(filter_params[i], ranges[i])
+        processed_tables.append(filter_table(tables_all[i], filter_params[i]))
+
     counts_required = [i[SCORE_SUM_COL].count() for i in processed_tables]
     counts_common = [tables_all[i][SCORE_SUM_COL].count() for i in tables_all.keys()]
     score_average = []
@@ -119,17 +128,17 @@ def reshape_counts_to_show(tables_all, table_counts):
 
 
 def form_tables_with_required_people(tables_all, filter_params, ranges, save_dir):
-    validate_filter_params(filter_params, ranges)
-
-    b1 = filter_params["b1"]
-    b2 = filter_params["b2"]
-    p1 = filter_params["p1"]
-    p2 = filter_params["p2"]
-
-    name_suffix = f"{b1}_{b2}_{p1}_{p2}"
-
     for dir_code, dir_df in tables_all.items():
+        validate_filter_params(filter_params[dir_code], ranges[dir_code])
+
+        b1 = filter_params[dir_code]["b1"]
+        b2 = filter_params[dir_code]["b2"]
+        p1 = filter_params[dir_code]["p1"]
+        p2 = filter_params[dir_code]["p2"]
+
+        name_suffix = f"{b1}_{b2}_{p1}_{p2}"
+
         save_path = f"{save_dir}/{dir_code}_{name_suffix}.xlsx"
 
-        df_filtered = filter_table(dir_df, filter_params)
+        df_filtered = filter_table(dir_df, filter_params[dir_code])
         df_filtered.to_excel(save_path)
