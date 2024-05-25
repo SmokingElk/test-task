@@ -5,15 +5,20 @@ import os
 SCORE_SUM_COL = "Сумма баллов"
 PRIPROTY_COL = "Приоритет"
 
-OUT_PATH = "out"
+DIR_CODES_COL = "Направление подготовки"
+COUNTS_REQUIRED_COL = "Количество требуемых людей"
+COUNTS_COMMON_COL = "Общее количество людей"
+AVER_SCORE_COL = "Средний балл"
+COUNTS_COL = "Количество людей"
+COUNT_TYPE_COL = "Тип количества"
 
 
-def read_all():
+def load_data(load_dir):
     res = {}
 
     print("Loading data:")
 
-    for i in glob.glob("data/*.xlsx"):
+    for i in glob.glob(f"{load_dir}/*.xlsx"):
         dir_code = ".".join(os.path.basename(i).split(".")[:-1])
         print(f"Loading {dir_code}.xlsx")
 
@@ -29,32 +34,69 @@ def calc_ranges(tables_all):
     b_max = max([i[SCORE_SUM_COL].max() for i in tables_all.values()])
     p_min = min([i[PRIPROTY_COL].min() for i in tables_all.values()])
     p_max = max([i[PRIPROTY_COL].max() for i in tables_all.values()])
-    return b_min, b_max, p_min, p_max
+
+    return {
+        "b_min": b_min, 
+        "b_max": b_max, 
+        "p_min": p_min, 
+        "p_max": p_max
+    }
 
 
-def process_table(table, b1, b2, p1, p2):
-    part_need = table[(table[SCORE_SUM_COL] >= b1) & (table[SCORE_SUM_COL] <= b2) & (table[PRIPROTY_COL] >= p1) & (table[PRIPROTY_COL] <= p2)]
+def validate_filter_params(filter_params, ranges):
+    if filter_params["b1"] < ranges["b_min"] or filter_params["b1"] > ranges["b_max"]:
+        raise ValueError("b1 is out of range") 
+    
+    if filter_params["b2"] < ranges["b_min"] or filter_params["b2"] > ranges["b_max"]:
+        raise ValueError("b2 is out of range") 
+    
+    if filter_params["p1"] < ranges["p_min"] or filter_params["p1"] > ranges["p_max"]:
+        raise ValueError("p1 is out of range") 
+    
+    if filter_params["p2"] < ranges["p_min"] or filter_params["p2"] > ranges["p_max"]:
+        raise ValueError("p2 is out of range") 
+    
+    if filter_params["b1"] > filter_params["b2"]:
+        raise ValueError("b1 must be less than b2 or equal it")
+    
+    if filter_params["p1"] > filter_params["p2"]:
+        raise ValueError("p1 must be less than p2 or equal it")
+
+
+def filter_table(table, filter_params):
+    b1 = filter_params["b1"]
+    b2 = filter_params["b2"]
+    p1 = filter_params["p1"]
+    p2 = filter_params["p2"]
+    
+    part_need = table[(table[SCORE_SUM_COL] >= b1) & (table[SCORE_SUM_COL] <= b2) & \
+                      (table[PRIPROTY_COL] >= p1) & (table[PRIPROTY_COL] <= p2)]
+    
     return part_need
 
 
-def form_table_counts(tables_all, b1, b2, p1, p2):
-    processed_tables = [process_table(tables_all[i], b1, b2, p1, p2) for i in tables_all.keys()]
-    counts = [i[SCORE_SUM_COL].count() for i in processed_tables]
+def create_stat_table(tables_all, filter_params, ranges):
+    validate_filter_params(filter_params, ranges)
+
+    processed_tables = [filter_table(tables_all[i], filter_params) for i in tables_all.keys()]
+    counts_required = [i[SCORE_SUM_COL].count() for i in processed_tables]
+    counts_common = [tables_all[i][SCORE_SUM_COL].count() for i in tables_all.keys()]
     score_average = []
 
     for i in range(len(processed_tables)):
-        score_average.append(processed_tables[i][SCORE_SUM_COL].sum() / counts[i])
+        score_average.append(processed_tables[i][SCORE_SUM_COL].sum() / counts_required[i])
 
     frame_counts = pd.DataFrame({
-        "Направление подготовки": list(tables_all.keys()),
-        "Количество людей": counts,
-        "Средний балл": score_average,
+        DIR_CODES_COL: list(tables_all.keys()),
+        COUNTS_REQUIRED_COL: counts_required,
+        COUNTS_COMMON_COL: counts_common,
+        AVER_SCORE_COL: score_average,
     })
 
     return frame_counts
 
 
-def create_counts_to_show(tables_all, table_counts):
+def reshape_counts_to_show(tables_all, table_counts):
     dir_codes = []
     counts = []
     count_type = []
@@ -62,25 +104,32 @@ def create_counts_to_show(tables_all, table_counts):
     row_num = 0
 
     for i in tables_all.keys():
-        dir_codes.append(i)
-        dir_codes.append(i)
-        counts.append(table_counts["Количество людей"][row_num])
-        counts.append(tables_all[i][SCORE_SUM_COL].count())
-        count_type.append("По параметрам")
-        count_type.append("Общее")
+        dir_codes += [i, i]
+        count_type += ["Требуемых", "Общее"]
+        counts.append(table_counts[COUNTS_REQUIRED_COL][row_num])
+        counts.append(table_counts[COUNTS_COMMON_COL][row_num])
 
         row_num = row_num + 1
 
     return pd.DataFrame({
-        "Направление подготовки": dir_codes,
-        "Количество людей": counts,
-        "Тип количества": count_type
+        DIR_CODES_COL: dir_codes,
+        COUNTS_COL: counts,
+        COUNT_TYPE_COL: count_type
     })
 
 
-def form_tables_with_required_people(tables_all, b1, b2, p1, p2):
-    for dir_code, dir_df in tables_all.items():
-        save_path = f"{OUT_PATH}/{dir_code}_{b1}_{b2}_{p1}_{p2}.xlsx"
+def form_tables_with_required_people(tables_all, filter_params, ranges, save_dir):
+    validate_filter_params(filter_params, ranges)
 
-        df_filtered = process_table(dir_df, b1, b2, p1, p2)
+    b1 = filter_params["b1"]
+    b2 = filter_params["b2"]
+    p1 = filter_params["p1"]
+    p2 = filter_params["p2"]
+
+    name_suffix = f"{b1}_{b2}_{p1}_{p2}"
+
+    for dir_code, dir_df in tables_all.items():
+        save_path = f"{save_dir}/{dir_code}_{name_suffix}.xlsx"
+
+        df_filtered = filter_table(dir_df, filter_params)
         df_filtered.to_excel(save_path)

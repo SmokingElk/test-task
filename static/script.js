@@ -57,6 +57,11 @@ buttonCalcCount.addEventListener("click", async function () {
         body: JSON.stringify(params), 
     });
 
+    if (response.status !== 200) {
+        errorText.textContent = "Server error";
+        return;
+    }
+
     let plots_paths = await response.json();
 
     plotCountsSpread.setAttribute("src", plots_paths.counts_spread + "?" + new Date().getTime());
@@ -78,5 +83,8 @@ buttonCalcPeople.addEventListener("click", async function () {
         body: JSON.stringify(params), 
     });
 
-    console.log(await response.text());
+    if (response.status !== 200) {
+        errorText.textContent = "Server error";
+        return;
+    }
 });
