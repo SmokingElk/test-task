@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test task</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="control">
+            <div class="inputs_grid">
+                <div class="input_label">Введите диапазон балла</div>
+                <input class="input" type="number" id="input_b1" placeholder="b1" min="{{b_min}}" max="{{b_max}}" step="1"/>
+                <input class="input" type="number" id="input_b2" placeholder="b2" min="{{b_min}}" max="{{b_max}}" step="1"/>
+
+                <div class="input_label">Введите диапазон приоритета</div>
+                <input class="input" type="number" id="input_p1" placeholder="p1" min="{{p_min}}" max="{{p_max}}" step="1"/>
+                <input class="input" type="number" id="input_p2" placeholder="p2" min="{{p_min}}" max="{{p_max}}" step="1"/>
+            </div>
+            
+            <div id="error" class="error_text"></div>
+
+            <div class="buttons_row">
+                <button class="button" id="calc_count">Создать таблицу с количествами</button>
+                <button class="button" id="calc_people">Создать таблицы требуемых людей</button>
+            </div>
+        </div>
+
+        <div class="plots_row">
+            <img class="plot" id="plot_counts_spread" src=""/>
+            <img class="plot" id="plot_score_spread" src=""/>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
