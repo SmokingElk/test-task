@@ -89,7 +89,7 @@ buttonCalcPeople.addEventListener("click", async function () {
 	if (valRes !== "success") {
 		errorText.textContent = valRes;
 		return;
-	} else resetInfo();
+	} else errorText.textContent = "";
 
 	showLoader(loaderPeople);
 
